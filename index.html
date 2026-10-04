@@ -508,7 +508,7 @@
       ].join(" ");
     }
 
-    function showLevel(clearFeedback = true) {
+    function showLevel(clearFeedback = true, focusInput = true) {
       answered = false;
       won = false;
       if (clearFeedback) {
@@ -526,7 +526,7 @@
       roundLabel.textContent = `Challenge ${challenge} · Level ${levelIndex + 1}/${levelWidths.length}`;
       question.innerHTML = `Name a city inside the highlighted <span class="direction-word">${width}° arc</span>, centered on the ${currentDirection.name} line from ${currentCity.name}.`;
       sector.setAttribute("d", ringSectorPath(currentDirection, width));
-      answerInput.focus();
+      if (focusInput) answerInput.focus();
     }
 
     function startChallenge() {
@@ -556,6 +556,8 @@
     function checkAnswer(event) {
       event.preventDefault();
       if (answered) return;
+      answerInput.blur();
+      closeSuggestions();
 
       const entered = normalize(answerInput.value);
       const candidate = capitals.find((city) => normalize(city.name) === entered);
@@ -563,7 +565,6 @@
         feedback.textContent = "Choose a listed city from the suggestions, then try again.";
         feedback.className = "feedback bad";
         markWrongAnswer();
-        answerInput.focus();
         return;
       }
 
@@ -571,7 +572,6 @@
         feedback.textContent = "Pick a different city from the center city.";
         feedback.className = "feedback bad";
         markWrongAnswer();
-        answerInput.focus();
         return;
       }
 
@@ -602,7 +602,7 @@
         nextButton.classList.add("visible");
       } else {
         levelIndex = 0;
-        showLevel(false);
+        showLevel(false, false);
         feedback.textContent = `${candidate.name} is ${degrees}° from the ${currentDirection.name.toLowerCase()} line, outside the ${width}° arc. The challenge restarted at 180° — try again!`;
         feedback.className = "feedback bad";
         markWrongAnswer();
