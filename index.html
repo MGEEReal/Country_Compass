@@ -34,11 +34,11 @@
     button, input { font: inherit; }
 
     .app {
-      width: min(100%, 980px);
+      width: min(100%, 760px);
       margin: 0 auto;
     }
 
-    .topbar, .scoreboard, .game-card, .how-to {
+    .topbar, .game-card {
       border: 1px solid var(--line);
       background: rgba(22, 37, 61, .82);
       box-shadow: 0 24px 70px rgba(0, 0, 0, .18);
@@ -79,34 +79,11 @@
       font-weight: 650;
     }
 
-    .scoreboard {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-      padding: 10px;
-      border-radius: 16px;
-      box-shadow: none;
-    }
-
-    .score-item {
-      flex: 1;
-      padding: 10px 16px;
-      text-align: center;
-    }
-
-    .score-item + .score-item { border-left: 1px solid var(--line); }
-    .score-value { display: block; font-size: 22px; font-weight: 760; }
-    .score-name { color: var(--muted); font-size: 12px; }
-
     main {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
-      gap: 18px;
-      margin-top: 18px;
+      margin-top: 22px;
     }
 
-    .game-card, .how-to { border-radius: 22px; }
-    .game-card { padding: 28px; }
+    .game-card { padding: 32px clamp(20px, 6vw, 52px); border-radius: 24px; }
 
     .eyebrow {
       margin: 0 0 8px;
@@ -258,37 +235,6 @@
       .game-card.wrong-answer { animation: none; border-color: #ff786e; }
     }
 
-    .how-to {
-      align-self: start;
-      padding: 25px;
-      box-shadow: none;
-    }
-
-    .how-to h2 { margin: 0 0 16px; font-size: 17px; }
-    .how-to p { margin: 0 0 17px; color: var(--muted); font-size: 14px; line-height: 1.65; }
-    .how-to p:last-child { margin-bottom: 0; }
-
-    .legend {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 20px 0;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      color: #dce7f8;
-      font-size: 13px;
-    }
-
-    .legend-item strong { color: var(--blue); }
-    .sector-key { width: 13px; height: 13px; border-radius: 4px; background: var(--mint); }
-
     .next-button {
       display: none;
       width: 100%;
@@ -300,16 +246,14 @@
 
     @media (max-width: 760px) {
       body { padding: 18px 12px 30px; }
-      main { grid-template-columns: 1fr; }
-      .game-card { padding: 22px 18px; }
-      .how-to { padding: 20px; }
+      main { margin-top: 14px; }
+      .game-card { padding: 24px 18px; }
       .topbar { padding: 14px 16px; }
     }
 
     @media (max-width: 430px) {
       form { flex-direction: column; }
       form button { min-height: 46px; }
-      .score-item { padding: 8px 5px; }
       .suggestions {
         position: static;
         max-height: min(240px, 32vh);
@@ -324,11 +268,6 @@
       <div class="brand"><span class="brand-mark" aria-hidden="true">✦</span> Capital Compass</div>
       <div class="round-label" id="round-label">Challenge 1 · Level 1/6</div>
     </header>
-
-    <section class="scoreboard" aria-label="Game score">
-      <div class="score-item"><span class="score-value" id="score">0</span><span class="score-name">Points</span></div>
-      <div class="score-item"><span class="score-value" id="streak">0</span><span class="score-name">Best streak</span></div>
-    </section>
 
     <main>
       <section class="game-card" aria-labelledby="title">
@@ -370,19 +309,6 @@
         <button class="next-button" id="next-button" type="button">Next level</button>
       </section>
 
-      <aside class="how-to">
-        <h2>How to play</h2>
-        <p>With each correct guess, a random eligible city becomes the new center and the arc shifts to a different random direction. The arc narrows through 180°, 150°, 120°, 90°, 45°, and 27°.</p>
-        <div class="legend" aria-label="Compass directions">
-          <div class="legend-item"><strong>N</strong> North</div>
-          <div class="legend-item"><strong>E</strong> East</div>
-          <div class="legend-item"><strong>S</strong> South</div>
-          <div class="legend-item"><strong>W</strong> West</div>
-        </div>
-        <p><span class="sector-key" aria-hidden="true"></span> The arc moves around the compass each level. Its number is the full width of the allowed angle.</p>
-        <p>Get one guess right at every width to win. A wrong city starts the challenge over at 180°. City and country suggestions appear as you type; tap one on a phone or use the arrow keys and Enter.</p>
-        <p>Capital coordinates: <a href="https://www.geonames.org/">GeoNames</a> and <a href="https://github.com/mledoze/countries">mledoze/countries</a>.</p>
-      </aside>
     </main>
   </div>
 
@@ -399,8 +325,6 @@
     const levelWidths = [180, 150, 120, 90, 45, 27];
     const directionCache = new Map();
 
-    const scoreEl = document.getElementById("score");
-    const streakEl = document.getElementById("streak");
     const roundLabel = document.getElementById("round-label");
     const question = document.getElementById("question");
     const gameCard = document.querySelector(".game-card");
@@ -415,9 +339,6 @@
     const sector = document.getElementById("sector");
     const suggestions = document.getElementById("city-suggestions");
 
-    let score = 0;
-    let streak = 0;
-    let bestStreak = 0;
     let challenge = 0;
     let levelIndex = 0;
     let currentCity;
@@ -611,8 +532,6 @@
     function startChallenge() {
       challenge += 1;
       levelIndex = 0;
-      streak = 0;
-      streakEl.textContent = streak;
 
       const availableChallenges = [];
       for (const city of capitals) {
@@ -660,11 +579,6 @@
       const degrees = Math.round(bearing(currentCity, candidate));
       const difference = angularDifference(bearing(currentCity, candidate), currentDirection.angle);
       if (difference <= width / 2) {
-        score += 1;
-        streak += 1;
-        bestStreak = Math.max(bestStreak, streak);
-        scoreEl.textContent = score;
-        streakEl.textContent = bestStreak;
         answered = true;
         answerInput.disabled = true;
         submitButton.disabled = true;
@@ -687,8 +601,6 @@
         feedback.className = "feedback good";
         nextButton.classList.add("visible");
       } else {
-        streak = 0;
-        streakEl.textContent = streak;
         levelIndex = 0;
         showLevel(false);
         feedback.textContent = `${candidate.name} is ${degrees}° from the ${currentDirection.name.toLowerCase()} line, outside the ${width}° arc. The challenge restarted at 180° — try again!`;
