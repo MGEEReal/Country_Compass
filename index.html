@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101c32">
+  <title>Capital Compass</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #101c32;
+      color: #eef4ff;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --muted: #a3b2ca;
+      --line: rgba(193, 212, 244, .16);
+      --mint: #79f0c1;
+      --blue: #81aaff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 36px 20px;
+      background:
+        radial-gradient(ellipse at 50% -20%, rgba(60, 105, 166, .36), transparent 58%),
+        #101c32;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(100%, 980px);
+      margin: 0 auto;
+    }
+
+    .topbar, .scoreboard, .game-card, .how-to {
+      border: 1px solid var(--line);
+      background: rgba(22, 37, 61, .82);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .18);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 22px;
+      border-radius: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 17px;
+      font-weight: 750;
+      letter-spacing: .01em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(121, 240, 193, .12);
+      color: var(--mint);
+      font-size: 21px;
+    }
+
+    .round-label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 10px;
+      border-radius: 16px;
+      box-shadow: none;
+    }
+
+    .score-item {
+      flex: 1;
+      padding: 10px 16px;
+      text-align: center;
+    }
+
+    .score-item + .score-item { border-left: 1px solid var(--line); }
+    .score-value { display: block; font-size: 22px; font-weight: 760; }
+    .score-name { color: var(--muted); font-size: 12px; }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .game-card, .how-to { border-radius: 22px; }
+    .game-card { padding: 28px; }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--mint);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(25px, 4vw, 34px);
+      letter-spacing: -.035em;
+    }
+
+    .intro {
+      margin: 10px 0 20px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .compass-wrap {
+      width: min(100%, 430px);
+      margin: 0 auto 12px;
+    }
+
+    #compass { display: block; width: 100%; overflow: visible; }
+
+    .compass-ring {
+      fill: rgba(123, 154, 198, .09);
+      stroke: rgba(175, 199, 236, .25);
+      stroke-width: 1.5;
+    }
+
+    .ring-inner { fill: rgba(13, 26, 46, .92); }
+    .ring-divider { stroke: rgba(175, 199, 236, .16); stroke-width: 1; }
+    .target-sector { fill: rgba(121, 240, 193, .46); stroke: var(--mint); stroke-width: 2; }
+    .compass-label { fill: #9eafc9; font-size: 13px; font-weight: 800; }
+    .compass-label.active { fill: var(--mint); }
+    .city-dot { fill: var(--mint); stroke: #d9fff0; stroke-width: 4; }
+    .city-text { fill: #eef4ff; font-size: 15px; font-weight: 760; }
+    .hint-text { fill: #9eafc9; font-size: 10px; font-weight: 650; letter-spacing: .08em; }
+
+    .question {
+      margin: 10px 0 16px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    .direction-word { color: var(--mint); }
+
+    form { display: flex; gap: 10px; }
+
+    input {
+      min-width: 0;
+      flex: 1;
+      padding: 13px 15px;
+      border: 1px solid rgba(176, 199, 235, .26);
+      border-radius: 12px;
+      outline: none;
+      background: rgba(8, 18, 34, .55);
+      color: #f5f8ff;
+    }
+
+    input::placeholder { color: #8191aa; }
+    input:focus { border-color: var(--mint); box-shadow: 0 0 0 3px rgba(121, 240, 193, .12); }
+
+    button {
+      padding: 0 20px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--mint);
+      color: #102436;
+      cursor: pointer;
+      font-weight: 800;
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    button:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+
+    .feedback {
+      min-height: 25px;
+      margin: 12px 2px 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .feedback.good { color: var(--mint); }
+    .feedback.bad { color: #ffb4a9; }
+
+    .how-to {
+      align-self: start;
+      padding: 25px;
+      box-shadow: none;
+    }
+
+    .how-to h2 { margin: 0 0 16px; font-size: 17px; }
+    .how-to p { margin: 0 0 17px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    .how-to p:last-child { margin-bottom: 0; }
+
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: #dce7f8;
+      font-size: 13px;
+    }
+
+    .legend-item strong { color: var(--blue); }
+    .sector-key { width: 13px; height: 13px; border-radius: 4px; background: var(--mint); }
+
+    .next-button {
+      display: none;
+      width: 100%;
+      min-height: 46px;
+      margin-top: 10px;
+    }
+
+    .next-button.visible { display: block; }
+
+    @media (max-width: 760px) {
+      body { padding: 18px 12px 30px; }
+      main { grid-template-columns: 1fr; }
+      .game-card { padding: 22px 18px; }
+      .how-to { padding: 20px; }
+      .topbar { padding: 14px 16px; }
+    }
+
+    @media (max-width: 430px) {
+      form { flex-direction: column; }
+      form button { min-height: 46px; }
+      .score-item { padding: 8px 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✦</span> Capital Compass</div>
+      <div class="round-label" id="round-label">Challenge 1 · Level 1/6</div>
+    </header>
+
+    <section class="scoreboard" aria-label="Game score">
+      <div class="score-item"><span class="score-value" id="score">0</span><span class="score-name">Points</span></div>
+      <div class="score-item"><span class="score-value" id="streak">0</span><span class="score-name">Best streak</span></div>
+    </section>
+
+    <main>
+      <section class="game-card" aria-labelledby="title">
+        <p class="eyebrow">Find your way around the world</p>
+        <h1 id="title">Which capital lies that way?</h1>
+        <p class="intro">Find a city inside the highlighted arc. Each correct guess moves the center to a random city as the arc narrows.</p>
+
+        <div class="compass-wrap">
+          <svg id="compass" viewBox="0 0 360 360" role="img" aria-labelledby="compass-title compass-description">
+            <title id="compass-title">Compass showing the direction from the center city</title>
+            <desc id="compass-description">The highlighted part of the ring marks the direction to guess.</desc>
+            <circle class="compass-ring" cx="180" cy="180" r="124"></circle>
+            <path id="sector" class="target-sector"></path>
+            <circle class="ring-inner" cx="180" cy="180" r="76"></circle>
+            <line class="ring-divider" x1="180" y1="56" x2="180" y2="104"></line>
+            <line class="ring-divider" x1="180" y1="256" x2="180" y2="304"></line>
+            <line class="ring-divider" x1="56" y1="180" x2="104" y2="180"></line>
+            <line class="ring-divider" x1="256" y1="180" x2="304" y2="180"></line>
+            <text id="north-label" class="compass-label" x="180" y="34" text-anchor="middle">N · NORTH</text>
+            <text id="east-label" class="compass-label" x="335" y="184" text-anchor="end">E · EAST</text>
+            <text id="south-label" class="compass-label" x="180" y="345" text-anchor="middle">S · SOUTH</text>
+            <text id="west-label" class="compass-label" x="25" y="184" text-anchor="start">W · WEST</text>
+            <circle class="city-dot" cx="180" cy="160" r="7"></circle>
+            <text id="center-city" class="city-text" x="180" y="191" text-anchor="middle">Prague</text>
+            <text class="hint-text" x="180" y="211" text-anchor="middle">CENTER CITY</text>
+          </svg>
+        </div>
+
+        <p class="question" id="question">Name a city inside the highlighted arc.</p>
+        <form id="answer-form">
+          <input id="answer" name="answer" list="capital-list" placeholder="Type a city..." autocomplete="off" aria-label="Your city answer" required>
+          <datalist id="capital-list"></datalist>
+          <button type="submit">Check answer</button>
+        </form>
+        <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+        <button class="next-button" id="next-button" type="button">Next level</button>
+      </section>
+
+      <aside class="how-to">
+        <h2>How to play</h2>
+        <p>With each correct guess, a random eligible city becomes the new center and the arc shifts to a different random direction. The arc narrows through 180°, 150°, 120°, 90°, 45°, and 27°.</p>
+        <div class="legend" aria-label="Compass directions">
+          <div class="legend-item"><strong>N</strong> North</div>
+          <div class="legend-item"><strong>E</strong> East</div>
+          <div class="legend-item"><strong>S</strong> South</div>
+          <div class="legend-item"><strong>W</strong> West</div>
+        </div>
+        <p><span class="sector-key" aria-hidden="true"></span> The arc moves around the compass each level. Its number is the full width of the allowed angle.</p>
+        <p>Get one guess right at every width to win. A wrong city starts the challenge over at 180°. City names are suggested as you type.</p>
+        <p>Capital coordinates: <a href="https://www.geonames.org/">GeoNames</a> and <a href="https://github.com/mledoze/countries">mledoze/countries</a>.</p>
+      </aside>
+    </main>
+  </div>
+
+  <script src="capitals.js"></script>
+  <script>
+    "use strict";
+
+    const directions = [
+      { key: "N", name: "NORTH", angle: 0, label: "north-label" },
+      { key: "E", name: "EAST", angle: 90, label: "east-label" },
+      { key: "S", name: "SOUTH", angle: 180, label: "south-label" },
+      { key: "W", name: "WEST", angle: 270, label: "west-label" }
+    ];
+    const levelWidths = [180, 150, 120, 90, 45, 27];
+    const directionCache = new Map();
+
+    const scoreEl = document.getElementById("score");
+    const streakEl = document.getElementById("streak");
+    const roundLabel = document.getElementById("round-label");
+    const question = document.getElementById("question");
+    const form = document.getElementById("answer-form");
+    const answerInput = document.getElementById("answer");
+    const feedback = document.getElementById("feedback");
+    const nextButton = document.getElementById("next-button");
+    const centerCityLabel = document.getElementById("center-city");
+    const sector = document.getElementById("sector");
+    const datalist = document.getElementById("capital-list");
+
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let challenge = 0;
+    let levelIndex = 0;
+    let currentCity;
+    let currentDirection;
+    let nextCity;
+    let answered = false;
+    let won = false;
+
+    const normalize = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLocaleLowerCase();
+
+    function bearing(from, to) {
+      const radians = Math.PI / 180;
+      const fromLat = from.lat * radians;
+      const toLat = to.lat * radians;
+      const longitudeDifference = (to.lon - from.lon) * radians;
+      const y = Math.sin(longitudeDifference) * Math.cos(toLat);
+      const x = Math.cos(fromLat) * Math.sin(toLat) -
+        Math.sin(fromLat) * Math.cos(toLat) * Math.cos(longitudeDifference);
+      return (Math.atan2(y, x) / radians + 360) % 360;
+    }
+
+    function directionFor(from, to) {
+      const angle = bearing(from, to);
+      if (angle >= 315 || angle < 45) return "N";
+      if (angle < 135) return "E";
+      if (angle < 225) return "S";
+      return "W";
+    }
+
+    function angularDifference(angle, targetAngle) {
+      return Math.abs(((angle - targetAngle + 540) % 360) - 180);
+    }
+
+    function isInsideArc(from, to, direction, width) {
+      return angularDifference(bearing(from, to), direction.angle) <= width / 2;
+    }
+
+    function targetCities(city, direction, width, nextWidth) {
+      return capitals.filter((candidate) =>
+        candidate.name !== city.name &&
+        isInsideArc(city, candidate, direction, width) &&
+        (nextWidth === undefined || availableDirections(candidate, nextWidth).length > 0)
+      );
+    }
+
+    function availableDirections(city, width, nextWidth) {
+      const cacheKey = `${city.name}:${width}`;
+      let available = directionCache.get(cacheKey);
+      if (!available) {
+        available = directions.filter((direction) =>
+          targetCities(city, direction, width).length > 0
+        );
+        directionCache.set(cacheKey, available);
+      }
+      return nextWidth === undefined
+        ? available
+        : available.filter((direction) =>
+          targetCities(city, direction, width, nextWidth).length > 0
+        );
+    }
+
+    function chooseDirection(city, width, previousDirection, nextWidth) {
+      const available = availableDirections(city, width, nextWidth);
+      if (available.length === 0) {
+        throw new Error(`No city targets are available within ${width}° of ${city.name}.`);
+      }
+      const moved = available.filter((direction) => direction.key !== previousDirection.key);
+      const choices = moved.length > 0 ? moved : available;
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    function ringSectorPath(direction, width) {
+      const center = 180;
+      const outerRadius = 124;
+      const innerRadius = 77;
+      const toPoint = (radius, degrees) => {
+        const angle = (degrees - 90) * Math.PI / 180;
+        return [center + radius * Math.cos(angle), center + radius * Math.sin(angle)];
+      };
+      const start = direction.angle - width / 2;
+      const end = direction.angle + width / 2;
+      const outerStart = toPoint(outerRadius, start);
+      const outerEnd = toPoint(outerRadius, end);
+      const innerEnd = toPoint(innerRadius, end);
+      const innerStart = toPoint(innerRadius, start);
+      return [
+        `M ${outerStart[0]} ${outerStart[1]}`,
+        `A ${outerRadius} ${outerRadius} 0 0 1 ${outerEnd[0]} ${outerEnd[1]}`,
+        `L ${innerEnd[0]} ${innerEnd[1]}`,
+        `A ${innerRadius} ${innerRadius} 0 0 0 ${innerStart[0]} ${innerStart[1]}`,
+        "Z"
+      ].join(" ");
+    }
+
+    function showLevel(clearFeedback = true) {
+      answered = false;
+      won = false;
+      if (clearFeedback) {
+        feedback.textContent = "";
+        feedback.className = "feedback";
+      }
+      answerInput.value = "";
+      answerInput.disabled = false;
+      form.querySelector("button").disabled = false;
+      nextButton.classList.remove("visible");
+
+      const width = levelWidths[levelIndex];
+      roundLabel.textContent = `Challenge ${challenge} · Level ${levelIndex + 1}/${levelWidths.length}`;
+      question.innerHTML = `Name a city inside the highlighted <span class="direction-word">${width}° arc</span>, centered on the ${currentDirection.name} line from ${currentCity.name}.`;
+      sector.setAttribute("d", ringSectorPath(currentDirection, width));
+      answerInput.focus();
+    }
+
+    function startChallenge() {
+      challenge += 1;
+      levelIndex = 0;
+      streak = 0;
+      streakEl.textContent = streak;
+
+      const availableChallenges = [];
+      for (const city of capitals) {
+        for (const direction of availableDirections(city, levelWidths[0], levelWidths[1])) {
+          availableChallenges.push({ city, direction });
+        }
+      }
+
+      const next = availableChallenges[Math.floor(Math.random() * availableChallenges.length)];
+      currentCity = next.city;
+      currentDirection = next.direction;
+      centerCityLabel.textContent = currentCity.name;
+
+      for (const direction of directions) {
+        document.getElementById(direction.label).classList.toggle("active", direction.key === currentDirection.key);
+      }
+      nextButton.textContent = "Next level";
+      showLevel();
+    }
+
+    function checkAnswer(event) {
+      event.preventDefault();
+      if (answered) return;
+
+      const entered = normalize(answerInput.value);
+      const candidate = capitals.find((city) => normalize(city.name) === entered);
+      if (!candidate) {
+        feedback.textContent = "Choose a listed city from the suggestions, then try again.";
+        feedback.className = "feedback bad";
+        answerInput.focus();
+        return;
+      }
+
+      if (candidate.name === currentCity.name) {
+        feedback.textContent = "Pick a different city from the center city.";
+        feedback.className = "feedback bad";
+        answerInput.focus();
+        return;
+      }
+
+      const width = levelWidths[levelIndex];
+      const degrees = Math.round(bearing(currentCity, candidate));
+      const difference = angularDifference(bearing(currentCity, candidate), currentDirection.angle);
+      if (difference <= width / 2) {
+        score += 1;
+        streak += 1;
+        bestStreak = Math.max(bestStreak, streak);
+        scoreEl.textContent = score;
+        streakEl.textContent = bestStreak;
+        answered = true;
+        answerInput.disabled = true;
+        form.querySelector("button").disabled = true;
+
+        if (levelIndex === levelWidths.length - 1) {
+          won = true;
+          roundLabel.textContent = `Challenge ${challenge} · Complete!`;
+          feedback.textContent = `You won! ${candidate.name} is ${degrees}° from the ${currentDirection.name.toLowerCase()} line. You cleared every level!`;
+          nextButton.textContent = "Play again";
+        } else {
+          const nextWidth = levelWidths[levelIndex + 1];
+          const eligibleCities = targetCities(currentCity, currentDirection, width, nextWidth);
+          const alternatives = eligibleCities.filter((city) => city.name !== candidate.name);
+          const choices = alternatives.length > 0 ? alternatives : eligibleCities;
+          nextCity = choices[Math.floor(Math.random() * choices.length)];
+          feedback.textContent = `Level passed! ${candidate.name} is correct. A random city, ${nextCity.name}, will be the new center. The ${nextWidth}° arc will move to a new direction.`;
+          nextButton.textContent = "Next level";
+        }
+        feedback.className = "feedback good";
+        nextButton.classList.add("visible");
+      } else {
+        streak = 0;
+        streakEl.textContent = streak;
+        levelIndex = 0;
+        showLevel(false);
+        feedback.textContent = `${candidate.name} is ${degrees}° from the ${currentDirection.name.toLowerCase()} line, outside the ${width}° arc. The challenge restarted at 180° — try again!`;
+        feedback.className = "feedback bad";
+      }
+    }
+
+    function handleNextButton() {
+      if (won) {
+        startChallenge();
+      } else {
+        levelIndex += 1;
+        const previousDirection = currentDirection;
+        currentCity = nextCity;
+        currentDirection = chooseDirection(
+          currentCity,
+          levelWidths[levelIndex],
+          previousDirection,
+          levelWidths[levelIndex + 1]
+        );
+        centerCityLabel.textContent = currentCity.name;
+        for (const direction of directions) {
+          document.getElementById(direction.label).classList.toggle("active", direction.key === currentDirection.key);
+        }
+        showLevel();
+      }
+    }
+
+    for (const city of capitals) {
+      const option = document.createElement("option");
+      option.value = city.name;
+      datalist.append(option);
+    }
+
+    form.addEventListener("submit", checkAnswer);
+    nextButton.addEventListener("click", handleNextButton);
+    startChallenge();
+  </script>
+</body>
+</html>
