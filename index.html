@@ -240,6 +240,24 @@
     .feedback.good { color: var(--mint); }
     .feedback.bad { color: #ffb4a9; }
 
+    .answer-field.has-error input,
+    .answer-field.has-error input:focus {
+      border-color: #ff786e;
+      background: rgba(93, 29, 39, .42);
+      box-shadow: 0 0 0 3px rgba(255, 120, 110, .16);
+    }
+
+    .game-card.wrong-answer { animation: wrong-answer .45s ease; }
+
+    @keyframes wrong-answer {
+      15%, 55% { transform: translateX(-5px); border-color: #ff786e; box-shadow: 0 0 0 3px rgba(255, 120, 110, .14), 0 24px 70px rgba(0, 0, 0, .18); }
+      35%, 75% { transform: translateX(5px); border-color: #ff786e; box-shadow: 0 0 0 3px rgba(255, 120, 110, .14), 0 24px 70px rgba(0, 0, 0, .18); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .game-card.wrong-answer { animation: none; border-color: #ff786e; }
+    }
+
     .how-to {
       align-self: start;
       padding: 25px;
@@ -385,8 +403,10 @@
     const streakEl = document.getElementById("streak");
     const roundLabel = document.getElementById("round-label");
     const question = document.getElementById("question");
+    const gameCard = document.querySelector(".game-card");
     const form = document.getElementById("answer-form");
     const answerInput = document.getElementById("answer");
+    const answerField = answerInput.closest(".answer-field");
     const submitButton = document.getElementById("submit-answer");
     const feedback = document.getElementById("feedback");
     const nextButton = document.getElementById("next-button");
@@ -408,6 +428,20 @@
     let activeSuggestionIndex = -1;
 
     const normalize = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLocaleLowerCase();
+
+    function clearWrongAnswer() {
+      answerField.classList.remove("has-error");
+      answerInput.removeAttribute("aria-invalid");
+      gameCard.classList.remove("wrong-answer");
+    }
+
+    function markWrongAnswer() {
+      answerField.classList.add("has-error");
+      answerInput.setAttribute("aria-invalid", "true");
+      gameCard.classList.remove("wrong-answer");
+      void gameCard.offsetWidth;
+      gameCard.classList.add("wrong-answer");
+    }
 
     function closeSuggestions() {
       suggestions.classList.remove("visible");
@@ -559,6 +593,7 @@
       if (clearFeedback) {
         feedback.textContent = "";
         feedback.className = "feedback";
+        clearWrongAnswer();
       }
       answerInput.value = "";
       answerInput.disabled = false;
@@ -608,6 +643,7 @@
       if (!candidate) {
         feedback.textContent = "Choose a listed city from the suggestions, then try again.";
         feedback.className = "feedback bad";
+        markWrongAnswer();
         answerInput.focus();
         return;
       }
@@ -615,6 +651,7 @@
       if (candidate.name === currentCity.name) {
         feedback.textContent = "Pick a different city from the center city.";
         feedback.className = "feedback bad";
+        markWrongAnswer();
         answerInput.focus();
         return;
       }
@@ -656,6 +693,7 @@
         showLevel(false);
         feedback.textContent = `${candidate.name} is ${degrees}° from the ${currentDirection.name.toLowerCase()} line, outside the ${width}° arc. The challenge restarted at 180° — try again!`;
         feedback.className = "feedback bad";
+        markWrongAnswer();
       }
     }
 
@@ -682,7 +720,14 @@
     }
 
     answerInput.addEventListener("focus", showSuggestions);
-    answerInput.addEventListener("input", showSuggestions);
+    answerInput.addEventListener("input", () => {
+      clearWrongAnswer();
+      if (feedback.classList.contains("bad")) {
+        feedback.textContent = "";
+        feedback.className = "feedback";
+      }
+      showSuggestions();
+    });
     answerInput.addEventListener("keydown", (event) => {
       if (event.key === "ArrowDown" && suggestions.classList.contains("visible")) {
         event.preventDefault();
